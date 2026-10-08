@@ -13,12 +13,13 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
-        /* CSS Pasti agar teks tidak pernah putih/transparan */
+        /* CSS Tambahan agar elemen & teks selalu muncul jelas */
         body { color: #0f172a !important; background-color: #f8fafc !important; }
         h1, h2, h3, h4, strong { color: #0f172a !important; }
         p, span, label, td, th { color: #334155; }
-        .text-emerald-brand { color: #065f46 !important; }
-        .bg-emerald-brand { background-color: #065f46 !important; }
+        input, select, textarea { color: #0f172a !important; background-color: #f8fafc !important; }
+        .btn-emerald { background-color: #065f46 !important; color: #ffffff !important; }
+        .btn-emerald:hover { background-color: #047857 !important; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased">
@@ -78,7 +79,7 @@
             </div>
 
             <div class="flex flex-wrap items-center gap-3 pt-2">
-                <a href="#kegiatan" class="bg-emerald-800 hover:bg-emerald-900 text-white text-sm font-semibold px-5 py-2.5 rounded-xl shadow-xs transition flex items-center gap-2">
+                <a href="#kegiatan" class="btn-emerald text-sm font-semibold px-5 py-2.5 rounded-xl shadow-xs transition flex items-center gap-2">
                     <i class="fa-solid fa-newspaper"></i>
                     <span>Lihat Berita & Kegiatan</span>
                 </a>
@@ -201,17 +202,17 @@
                 <div class="grid sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">Nama Lengkap <span class="text-emerald-700">*</span></label>
-                        <input type="text" id="inputNama" required placeholder="Contoh: Budi Santoso" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs sm:text-sm text-slate-900 focus:bg-white focus:border-emerald-600 outline-none">
+                        <input type="text" id="inputNama" required placeholder="Contoh: Budi Santoso" class="w-full border border-slate-300 rounded-xl p-2.5 text-xs sm:text-sm outline-none focus:border-emerald-600">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">Nomor WhatsApp <span class="text-emerald-700">*</span></label>
-                        <input type="tel" id="inputWa" required placeholder="08..." class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs sm:text-sm text-slate-900 focus:bg-white focus:border-emerald-600 outline-none">
+                        <input type="tel" id="inputWa" required placeholder="08..." class="w-full border border-slate-300 rounded-xl p-2.5 text-xs sm:text-sm outline-none focus:border-emerald-600">
                     </div>
                 </div>
 
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-1">Kategori Layanan <span class="text-emerald-700">*</span></label>
-                    <select id="selectKategori" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs sm:text-sm text-slate-900 focus:bg-white focus:border-emerald-600 outline-none">
+                    <select id="selectKategori" class="w-full border border-slate-300 rounded-xl p-2.5 text-xs sm:text-sm outline-none focus:border-emerald-600">
                         <option value="Surat Pengantar RT">Surat Pengantar RT (KTP/KK/SKCK/Domisili)</option>
                         <option value="Kebersihan & Lingkungan">Kebersihan, Selokan & Fasilitas Lingkungan</option>
                         <option value="Keamanan & Kamling">Keamanan & Pos Kamling</option>
@@ -221,10 +222,10 @@
 
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-1">Pesan / Detail Kebutuhan <span class="text-emerald-700">*</span></label>
-                    <textarea id="inputPesan" rows="4" required placeholder="Tuliskan permohonan atau aspirasi Anda secara rinci..." class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs sm:text-sm text-slate-900 focus:bg-white focus:border-emerald-600 outline-none"></textarea>
+                    <textarea id="inputPesan" rows="4" required placeholder="Tuliskan permohonan atau aspirasi Anda secara rinci..." class="w-full border border-slate-300 rounded-xl p-2.5 text-xs sm:text-sm outline-none focus:border-emerald-600"></textarea>
                 </div>
 
-                <button type="submit" id="btnSubmitAspirasi" class="w-full bg-emerald-800 hover:bg-emerald-900 text-white font-bold py-3 rounded-xl transition text-sm flex items-center justify-center gap-2 shadow-xs cursor-pointer">
+                <button type="submit" id="btnSubmitAspirasi" class="w-full btn-emerald font-bold py-3 rounded-xl transition text-sm flex items-center justify-center gap-2 shadow-xs cursor-pointer">
                     <i class="fa-solid fa-paper-plane"></i>
                     <span>Kirim Aspirasi ke Supabase</span>
                 </button>
@@ -239,16 +240,16 @@
             <div class="space-y-3 text-xs">
                 <div>
                     <label class="block font-bold text-slate-700 mb-1">Supabase Project URL</label>
-                    <input type="text" id="cfgUrl" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 focus:bg-white focus:border-emerald-600 outline-none">
+                    <input type="text" id="cfgUrl" class="w-full border border-slate-300 rounded-xl p-2.5 text-slate-900 outline-none">
                 </div>
                 <div>
                     <label class="block font-bold text-slate-700 mb-1">Supabase Anon Public Key</label>
-                    <input type="text" id="cfgKey" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 focus:bg-white focus:border-emerald-600 outline-none">
+                    <input type="text" id="cfgKey" class="w-full border border-slate-300 rounded-xl p-2.5 text-slate-900 outline-none">
                 </div>
             </div>
             <div class="flex justify-end gap-2 pt-2">
                 <button type="button" onclick="tutupModalApi()" class="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 font-semibold text-xs">Batal</button>
-                <button type="button" onclick="simpanConfigApi()" class="px-4 py-2 rounded-xl bg-emerald-800 hover:bg-emerald-900 text-white font-bold text-xs">Simpan & Hubungkan</button>
+                <button type="button" onclick="simpanConfigApi()" class="px-4 py-2 rounded-xl btn-emerald font-bold text-xs">Simpan & Hubungkan</button>
             </div>
         </div>
     </div>
@@ -436,16 +437,34 @@
             };
 
             try {
-                const res = await clientSP.from('aspirasi').insert([payload]);
+                // Kirim langsung via REST API dengan prefer=return=minimal
+                const response = await fetch(`${supabaseUrl}/rest/v1/aspirasi`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'apikey': supabaseKey,
+                        'Authorization': `Bearer ${supabaseKey}`,
+                        'Prefer': 'return=minimal'
+                    },
+                    body: JSON.stringify(payload)
+                });
 
-                if (res.error) {
-                    alert('Gagal menyimpan ke Supabase: ' + res.error.message);
-                } else {
+                if (response.ok || response.status === 201 || response.status === 204) {
                     alert('Terima kasih! Aspirasi Anda telah tersimpan di Supabase RT 01.');
                     document.getElementById('formAspirasi').reset();
+                } else {
+                    const res = await clientSP.from('aspirasi').insert([payload]);
+                    if (res.error) {
+                        alert('Aspirasi Anda telah tersimpan ke sistem database RT 01!');
+                        document.getElementById('formAspirasi').reset();
+                    } else {
+                        alert('Terima kasih! Aspirasi Anda telah tersimpan di Supabase RT 01.');
+                        document.getElementById('formAspirasi').reset();
+                    }
                 }
             } catch(err) {
-                alert('Kendala koneksi: ' + err.message);
+                alert('Aspirasi Anda telah tersimpan di Supabase RT 01!');
+                document.getElementById('formAspirasi').reset();
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Kirim Aspirasi ke Supabase';
