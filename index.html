@@ -13,7 +13,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
-        /* CSS Tambahan agar elemen & teks selalu muncul jelas */
         body { color: #0f172a !important; background-color: #f8fafc !important; }
         h1, h2, h3, h4, strong { color: #0f172a !important; }
         p, span, label, td, th { color: #334155; }
@@ -311,7 +310,7 @@
 
         async function getKegiatan() {
             try {
-                const res = await clientSP.from('kegiatan').select('*').order('id', { ascending: false });
+                const res = await clientSP.from('kegiatan').select('*').order('created_at', { ascending: false });
                 const data = res.data || [];
                 const container = document.getElementById('container-kegiatan');
                 document.getElementById('statTotalKegiatan').textContent = data.length;
@@ -339,7 +338,7 @@
 
         async function getKeuangan() {
             try {
-                const res = await clientSP.from('keuangan').select('*').order('id', { ascending: false });
+                const res = await clientSP.from('keuangan').select('*').order('created_at', { ascending: false });
                 const data = res.data || [];
                 const tbody = document.getElementById('tbody-keuangan');
 
@@ -437,7 +436,6 @@
             };
 
             try {
-                // Kirim langsung via REST API dengan prefer=return=minimal
                 const response = await fetch(`${supabaseUrl}/rest/v1/aspirasi`, {
                     method: 'POST',
                     headers: {
