@@ -247,6 +247,7 @@
                 </div>
             </div>
             <div class="flex justify-end gap-2 pt-2">
+                <button type="button" onclick="resetConfigDefault()" class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs mr-auto">Reset Default</button>
                 <button type="button" onclick="tutupModalApi()" class="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 font-semibold text-xs">Batal</button>
                 <button type="button" onclick="simpanConfigApi()" class="px-4 py-2 rounded-xl btn-emerald font-bold text-xs">Simpan & Hubungkan</button>
             </div>
@@ -257,7 +258,7 @@
         © 2026 RT 01 RW 03 Pecangaan Kulon. Powered by Supabase Cloud Database Engine.
     </footer>
 
-    <!-- LOGIKA JAVASCRIPT -->
+    <!-- LOGIKA JAVASCRIPT LENGKAP -->
     <script>
         const DEFAULT_URL = "https://blsykwxrbczjdfvypeq.supabase.co";
         const DEFAULT_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJsc3lrd3hyYmN6amRmdnlwcGVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzOTg4MjAsImV4cCI6MjEwNjk3NDgyMH0.GRfiZ2S73GXZmPGoylsLj_hcAXcOjAOjADgzpjSLkwI";
@@ -268,10 +269,18 @@
 
         function initClient() {
             try {
+                // Bersihkan cache jika URL tidak sesuai dengan project ini
                 const savedUrl = localStorage.getItem('rt01_sp_url');
                 const savedKey = localStorage.getItem('rt01_sp_key');
-                if (savedUrl) supabaseUrl = savedUrl;
-                if (savedKey) supabaseKey = savedKey;
+                if (savedUrl && savedUrl.includes('blsykwxrbczjdfvypeq')) {
+                    supabaseUrl = savedUrl;
+                    supabaseKey = savedKey || DEFAULT_KEY;
+                } else {
+                    localStorage.removeItem('rt01_sp_url');
+                    localStorage.removeItem('rt01_sp_key');
+                    supabaseUrl = DEFAULT_URL;
+                    supabaseKey = DEFAULT_KEY;
+                }
 
                 if (window.supabase && typeof window.supabase.createClient === 'function') {
                     clientSP = window.supabase.createClient(supabaseUrl, supabaseKey);
@@ -279,7 +288,7 @@
                 updateBadge(true);
                 muatSemuaData();
             } catch(e) {
-                console.error("Gagal koneksi Supabase:", e);
+                console.error("Gagal inisialisasi client Supabase:", e);
                 updateBadge(false);
             }
         }
@@ -301,6 +310,23 @@
             }
         }
 
+        async function fetchFromRest(endpoint) {
+            try {
+                const res = await fetch(`${supabaseUrl}/rest/v1/${endpoint}`, {
+                    headers: {
+                        'apikey': supabaseKey,
+                        'Authorization': `Bearer ${supabaseKey}`
+                    }
+                });
+                if (res.ok) {
+                    return await res.json();
+                }
+            } catch(e) {
+                console.warn(`Fetch REST API ${endpoint} gagal:`, e);
+            }
+            return null;
+        }
+
         async function muatSemuaData() {
             await Promise.allSettled([
                 getKegiatan(),
@@ -311,28 +337,24 @@
         }
 
         async function getKegiatan() {
+            const container = document.getElementById('container-kegiatan');
             try {
-                let data = [];
+                let data = null;
                 if (clientSP) {
-                    const res = await clientSP.from('kegiatan').select('*').order('created_at', { ascending: false });
-                    if (res.data && res.data.length > 0) data = res.data;
+                    const spRes = await clientSP.from('kegiatan').select('*');
+                    if (spRes.data && spRes.data.length > 0) data = spRes.data;
                 }
-                if (!data || data.length === 0) {
-                    const fetchRes = await fetch(`${supabaseUrl}/rest/v1/kegiatan?select=*&order=created_at.desc`, {
-                        headers: { 'apikey': supabaseKey, 'Authorization': `Bearer ${supabaseKey}` }
-                    });
-                    if (fetchRes.ok) data = await fetchRes.json();
-                }
+                if (!data) data = await fetchFromRest('kegiatan?select=*');
 
-                const container = document.getElementById('container-kegiatan');
-                document.getElementById('statTotalKegiatan').textContent = data ? data.length : 0;
+                const items = data || [];
+                document.getElementById('statTotalKegiatan').textContent = items.length;
 
-                if (!data || data.length === 0) {
+                if (items.length === 0) {
                     container.innerHTML = '<p class="col-span-3 text-center py-8 text-slate-500 text-xs">Belum ada agenda kegiatan di Supabase.</p>';
                     return;
                 }
 
-                container.innerHTML = data.map(item => `
+                container.innerHTML = items.map(item => `
                     <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs flex flex-col">
                         ${item.foto ? `<img src="${item.foto}" class="w-full h-44 object-cover" onerror="this.style.display='none'">` : ''}
                         <div class="p-5 flex flex-col justify-between flex-1 space-y-3">
@@ -345,34 +367,33 @@
                         </div>
                     </div>
                 `).join('');
-            } catch(e) { console.error("Err Kegiatan:", e); }
+            } catch(e) {
+                console.error("Err Kegiatan:", e);
+                container.innerHTML = '<p class="col-span-3 text-center py-8 text-rose-500 text-xs">Gagal memuat kegiatan dari Supabase.</p>';
+            }
         }
 
         async function getKeuangan() {
+            const tbody = document.getElementById('tbody-keuangan');
             try {
-                let data = [];
+                let data = null;
                 if (clientSP) {
-                    const res = await clientSP.from('keuangan').select('*').order('created_at', { ascending: false });
-                    if (res.data && res.data.length > 0) data = res.data;
+                    const spRes = await clientSP.from('keuangan').select('*');
+                    if (spRes.data && spRes.data.length > 0) data = spRes.data;
                 }
-                if (!data || data.length === 0) {
-                    const fetchRes = await fetch(`${supabaseUrl}/rest/v1/keuangan?select=*&order=created_at.desc`, {
-                        headers: { 'apikey': supabaseKey, 'Authorization': `Bearer ${supabaseKey}` }
-                    });
-                    if (fetchRes.ok) data = await fetchRes.json();
-                }
+                if (!data) data = await fetchFromRest('keuangan?select=*');
 
-                const tbody = document.getElementById('tbody-keuangan');
+                const items = data || [];
 
-                if (!data || data.length === 0) {
+                if (items.length === 0) {
                     tbody.innerHTML = '<tr><td colspan="6" class="py-8 text-center text-slate-500 text-xs">Belum ada transaksi kas di Supabase.</td></tr>';
                     document.getElementById('statTotalSaldoKas').textContent = 'Rp 0';
                     return;
                 }
 
                 let totalMasuk = 0, totalKeluar = 0;
-                tbody.innerHTML = data.map((t, idx) => {
-                    const isMasuk = String(t.tipe).toLowerCase() === 'pemasukan';
+                tbody.innerHTML = items.map((t, idx) => {
+                    const isMasuk = String(t.tipe || '').toLowerCase() === 'pemasukan';
                     const jml = parseInt(t.jumlah || 0, 10);
                     if (isMasuk) totalMasuk += jml; else totalKeluar += jml;
 
@@ -392,32 +413,31 @@
 
                 const saldo = totalMasuk - totalKeluar;
                 document.getElementById('statTotalSaldoKas').textContent = 'Rp ' + saldo.toLocaleString('id-ID');
-            } catch(e) { console.error("Err Keuangan:", e); }
+            } catch(e) {
+                console.error("Err Keuangan:", e);
+                tbody.innerHTML = '<tr><td colspan="6" class="py-8 text-center text-rose-500 text-xs">Gagal memuat laporan kas dari Supabase.</td></tr>';
+            }
         }
 
         async function getWarga() {
+            const tbody = document.getElementById('tbody-warga');
             try {
-                let data = [];
+                let data = null;
                 if (clientSP) {
-                    const res = await clientSP.from('warga').select('*');
-                    if (res.data && res.data.length > 0) data = res.data;
+                    const spRes = await clientSP.from('warga').select('*');
+                    if (spRes.data && spRes.data.length > 0) data = spRes.data;
                 }
-                if (!data || data.length === 0) {
-                    const fetchRes = await fetch(`${supabaseUrl}/rest/v1/warga?select=*`, {
-                        headers: { 'apikey': supabaseKey, 'Authorization': `Bearer ${supabaseKey}` }
-                    });
-                    if (fetchRes.ok) data = await fetchRes.json();
-                }
+                if (!data) data = await fetchFromRest('warga?select=*');
 
-                const tbody = document.getElementById('tbody-warga');
-                document.getElementById('statTotalWarga').textContent = data ? data.length : 0;
+                const items = data || [];
+                document.getElementById('statTotalWarga').textContent = items.length;
 
-                if (!data || data.length === 0) {
+                if (items.length === 0) {
                     tbody.innerHTML = '<tr><td colspan="6" class="py-8 text-center text-slate-500 text-xs">Belum ada data warga terdaftar.</td></tr>';
                     return;
                 }
 
-                tbody.innerHTML = data.map((w, idx) => `
+                tbody.innerHTML = items.map((w, idx) => `
                     <tr class="hover:bg-slate-50 border-b border-slate-100">
                         <td class="py-2.5 px-4 font-medium text-slate-500">${idx + 1}</td>
                         <td class="py-2.5 px-4 font-mono text-xs text-slate-700">${w.nik || '-'}</td>
@@ -427,31 +447,30 @@
                         <td class="py-2.5 px-4 text-slate-600">${w.pekerjaan || '-'}</td>
                     </tr>
                 `).join('');
-            } catch(e) { console.error("Err Warga:", e); }
+            } catch(e) {
+                console.error("Err Warga:", e);
+                tbody.innerHTML = '<tr><td colspan="6" class="py-8 text-center text-rose-500 text-xs">Gagal memuat data warga dari Supabase.</td></tr>';
+            }
         }
 
         async function getPengurus() {
+            const container = document.getElementById('container-pengurus');
             try {
-                let data = [];
+                let data = null;
                 if (clientSP) {
-                    const res = await clientSP.from('pengurus').select('*');
-                    if (res.data && res.data.length > 0) data = res.data;
+                    const spRes = await clientSP.from('pengurus').select('*');
+                    if (spRes.data && spRes.data.length > 0) data = spRes.data;
                 }
-                if (!data || data.length === 0) {
-                    const fetchRes = await fetch(`${supabaseUrl}/rest/v1/pengurus?select=*`, {
-                        headers: { 'apikey': supabaseKey, 'Authorization': `Bearer ${supabaseKey}` }
-                    });
-                    if (fetchRes.ok) data = await fetchRes.json();
-                }
+                if (!data) data = await fetchFromRest('pengurus?select=*');
 
-                const container = document.getElementById('container-pengurus');
+                const items = data || [];
 
-                if (!data || data.length === 0) {
+                if (items.length === 0) {
                     container.innerHTML = '<p class="col-span-4 text-center py-8 text-slate-500 text-xs">Belum ada data pengurus.</p>';
                     return;
                 }
 
-                container.innerHTML = data.map(p => `
+                container.innerHTML = items.map(p => `
                     <div class="bg-white border border-slate-200 rounded-2xl p-5 text-center space-y-2 shadow-2xs">
                         <div class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center mx-auto text-sm font-bold">
                             <i class="fa-solid fa-user-tie"></i>
@@ -461,7 +480,10 @@
                         <div class="text-xs text-emerald-700 font-semibold">${p.kontak || '-'}</div>
                     </div>
                 `).join('');
-            } catch(e) { console.error("Err Pengurus:", e); }
+            } catch(e) {
+                console.error("Err Pengurus:", e);
+                container.innerHTML = '<p class="col-span-4 text-center py-8 text-rose-500 text-xs">Gagal memuat data pengurus dari Supabase.</p>';
+            }
         }
 
         async function submitAspirasi(e) {
@@ -492,19 +514,17 @@
                 if (response.ok || response.status === 201 || response.status === 204) {
                     alert('Terima kasih! Aspirasi Anda telah tersimpan di Supabase RT 01.');
                     document.getElementById('formAspirasi').reset();
-                } else {
+                } else if (clientSP) {
                     const res = await clientSP.from('aspirasi').insert([payload]);
-                    if (res.error) {
-                        alert('Aspirasi Anda telah tersimpan ke sistem database RT 01!');
-                        document.getElementById('formAspirasi').reset();
-                    } else {
+                    if (!res.error) {
                         alert('Terima kasih! Aspirasi Anda telah tersimpan di Supabase RT 01.');
                         document.getElementById('formAspirasi').reset();
+                    } else {
+                        alert('Gagal mengirim aspirasi: ' + res.error.message);
                     }
                 }
             } catch(err) {
-                alert('Aspirasi Anda telah tersimpan di Supabase RT 01!');
-                document.getElementById('formAspirasi').reset();
+                alert('Terjadi kesalahan koneksi saat mengirim aspirasi.');
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Kirim Aspirasi ke Supabase';
@@ -520,6 +540,15 @@
 
         function tutupModalApi() {
             document.getElementById('modalApi').classList.add('hidden');
+        }
+
+        function resetConfigDefault() {
+            localStorage.removeItem('rt01_sp_url');
+            localStorage.removeItem('rt01_sp_key');
+            supabaseUrl = DEFAULT_URL;
+            supabaseKey = DEFAULT_KEY;
+            tutupModalApi();
+            initClient();
         }
 
         function simpanConfigApi() {
