@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <title>Portal Warga RT 01 RW 03 Pecangaan Kulon - Supabase</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Supabase JS Client v2 CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- BUILT-IN FALLBACK STYLES (Memastikan tampilan selalu rapi bahkan jika CDN offline) -->
+    <style>
+        :root {
+            --emerald-600: #059669;
+            --emerald-700: #047857;
+            --emerald-800: #065f46;
+            --emerald-900: #064e3b;
+            --slate-50: #f8fafc;
+            --slate-100: #f1f5f9;
+            --slate-200: #e2e8f0;
+            --slate-700: #334155;
+            --slate-800: #1e293b;
+            --slate-900: #0f172a;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--slate-50);
+            color: var(--slate-800);
+            margin: 0;
+            padding: 0;
+            line-height: 1.5;
+        }
+
+        /* Base Layout Structures */
+        header {
+            background-color: #ffffff;
+            border-bottom: 1px solid var(--slate-200);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        }
+
+        .container-custom {
+            max-width: 1280px;
+            margin-left: auto;
+            margin-right: auto;
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+
+        .btn-primary {
+            background-color: var(--emerald-700);
+            color: #ffffff;
+            padding: 0.6rem 1.2rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            transition: background-color 0.2s;
+        }
+        .btn-primary:hover {
+            background-color: var(--emerald-800);
+        }
+
+        .btn-secondary {
+            background-color: #ffffff;
+            color: var(--slate-800);
+            border: 1px solid var(--slate-200);
+            padding: 0.6rem 1.2rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            transition: background-color 0.2s;
+        }
+        .btn-secondary:hover {
+            background-color: var(--slate-100);
+        }
+
+        /* Card Styles */
+        .card {
+            background-color: #ffffff;
+            border: 1px solid var(--slate-200);
+            border-radius: 1rem;
+            padding: 1.25rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .card-emerald {
+            background: linear-gradient(135deg, var(--emerald-800), var(--emerald-900));
+            color: #ffffff;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            border: 1px solid var(--emerald-700);
+        }
+
+        /* Table Styling */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.875rem;
+        }
+        th {
+            background-color: var(--slate-100);
+            color: var(--slate-700);
+            font-weight: 700;
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--slate-200);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+        }
+        td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--slate-100);
+        }
+        tr:hover {
+            background-color: var(--slate-50);
+        }
+
+        /* Modal Backdrop & Popup Fixes */
+        .modal-backdrop {
+            position: fixed !important;
+            inset: 0 !important;
+            background-color: rgba(0, 0, 0, 0.65) !important;
+            z-index: 99999 !important;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            backdrop-filter: blur(4px);
+        }
+        .modal-backdrop.buka, .modal-backdrop.flex-active {
+            display: flex !important;
+        }
+        .modal-box {
+            background-color: #ffffff;
+            border-radius: 1.25rem;
+            width: 100%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            border: 1px solid var(--slate-200);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+            margin: auto;
+        }
+
+        /* Grid Utility Fallbacks */
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.25rem;
+        }
+        .grid-4 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1rem;
+        }
+
+        /* Form Inputs */
+        input, select, textarea {
+            width: 100%;
+            padding: 0.6rem 0.8rem;
+            border-radius: 0.75rem;
+            border: 1px solid var(--slate-200);
+            background-color: var(--slate-50);
+            box-sizing: border-box;
+            font-size: 0.875rem;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: 2px solid var(--emerald-600);
+            background-color: #ffffff;
+        }
+
+        /* Badge Styling */
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.6rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+        .badge-emerald { background-color: #d1fae5; color: var(--emerald-900); }
+        .badge-rose { background-color: #ffe4e6; color: #9f1239; }
+    </style>
+</head>
+<body>
+
+    <!-- HEADER / NAVIGATION -->
+    <header>
+        <div class="container-custom" style="height: 64px; display: flex; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <span style="width: 10px; height: 10px; border-radius: 50%; background-color: #10b981; display: inline-block;"></span>
+                <a href="#beranda" style="font-weight: 900; color: var(--slate-900); font-size: 1.125rem; text-decoration: none;">
+                    Portal Warga RT 01 RW 03
+                </a>
+                <span class="badge badge-emerald" style="border: 1px solid #a7f3d0;">
+                    Pecangaan Kulon
+                </span>
+            </div>
+
+            <nav style="display: flex; gap: 1.25rem; font-size: 0.875rem; font-weight: 600;">
+                <a href="#beranda" style="color: var(--slate-700); text-decoration: none;">Beranda</a>
+                <a href="#kegiatan" style="color: var(--slate-700); text-decoration: none;">Kegiatan</a>
+                <a href="#keuangan" style="color: var(--emerald-800); text-decoration: none; font-weight: 800;">Kas RT</a>
+                <a href="#data-warga" style="color: var(--slate-700); text-decoration: none;">Data Warga</a>
+                <a href="#lokasi" style="color: var(--slate-700); text-decoration: none;">Peta</a>
+                <a href="#pengurus" style="color: var(--slate-700); text-decoration: none;">Pengurus</a>
+                <a href="#layanan" style="color: var(--slate-700); text-decoration: none;">Aspirasi</a>
+            </nav>
+
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <button onclick="bukaModalConfigSupabase()" class="btn-secondary" style="font-size: 0.75rem; padding: 0.4rem 0.8rem;">
+                    <i class="fa-solid fa-gear"></i> Set API
+                </button>
+                <div id="statusSupabase" class="badge badge-emerald" style="font-size: 0.65rem;">
+                    CONNECTED
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container-custom" style="padding-top: 2rem; padding-bottom: 4rem; display: flex; flex-direction: column; gap: 3rem;">
+        
+        <!-- HERO SECTION -->
+        <section id="beranda" style="display: flex; flex-direction: column; gap: 1.5rem;">
+            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                <div style="width: max-content;">
+                    <span class="badge badge-emerald"><i class="fa-solid fa-database"></i> SUPABASE CLOUD ACTIVE</span>
+                </div>
+                <h1 style="font-size: 2.25rem; font-weight: 900; color: var(--slate-900); margin: 0; line-height: 1.2;">
+                    Selamat Datang di Portal Warga RT 01 RW 03
+                </h1>
+                <p style="font-size: 1.125rem; color: #475569; font-weight: 500; margin: 0;">
+                    Desa Pecangaan Kulon, Kecamatan Pecangaan, Kabupaten Jepara
+                </p>
+                <p style="color: #64748b; max-width: 800px; font-size: 0.9rem; margin: 0;">
+                    Portal pelayanan kependudukan, transparansi alokasi kas RT, publikasi kegiatan warga, dan permohonan surat pengantar online terintegrasi langsung dengan database Supabase Cloud.
+                </p>
+            </div>
+
+            <!-- ACTION BUTTONS -->
+            <div style="display: flex; flex-wrap: wrap; gap: 0.75rem;">
+                <a href="#kegiatan" class="btn-primary"><i class="fa-solid fa-newspaper"></i> Lihat Berita</a>
+                <a href="#keuangan" class="btn-secondary" style="background-color: #ecfdf5; color: var(--emerald-900); border-color: #a7f3d0;"><i class="fa-solid fa-wallet"></i> Laporan Kas</a>
+                <a href="#layanan" class="btn-secondary"><i class="fa-solid fa-paper-plane"></i> Kirim Aspirasi</a>
+                <a href="#data-warga" class="btn-secondary"><i class="fa-solid fa-users"></i> Data Kependudukan</a>
+            </div>
+
+            <!-- STATISTIK DASBOR -->
+            <div class="grid-4" style="margin-top: 0.5rem;">
+                <a href="#keuangan" class="card-emerald" style="text-decoration: none; display: block;">
+                    <div id="statTotalSaldoKas" style="font-size: 1.75rem; font-weight: 900; color: #a7f3d0;">Rp 0</div>
+                    <div style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.9; margin-top: 0.25rem;">
+                        Saldo Kas RT 01 <i class="fa-solid fa-arrow-right"></i>
+                    </div>
+                </a>
+                <div class="card">
+                    <div id="statTotalWarga" style="font-size: 2rem; font-weight: 900; color: var(--slate-800);">0</div>
+                    <div style="font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Total Warga Terdata</div>
+                </div>
+                <div class="card">
+                    <div id="statTotalKegiatan" style="font-size: 2rem; font-weight: 900; color: var(--emerald-700);">0</div>
+                    <div style="font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Kegiatan & Agenda</div>
+                </div>
+                <div class="card" style="display: flex; flex-direction: column; justify-content: center;">
+                    <div style="font-size: 1.25rem; font-weight: 800; color: var(--emerald-800); display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fa-solid fa-circle-check" style="color: #10b981;"></i> Supabase Realtime
+                    </div>
+                    <div style="font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; margin-top: 0.25rem;">Cloud Sync Active</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- KEGIATAN & BERITA -->
+        <section id="kegiatan" style="border-top: 1px solid var(--slate-200); padding-top: 2rem; display: flex; flex-direction: column; gap: 1rem;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1rem;">
+                <div>
+                    <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--slate-900); margin: 0;">Agenda & Berita Warga</h2>
+                    <p style="font-size: 0.875rem; color: #64748b; margin: 0;">Dokumentasi kegiatan dan pengumuman rutin RT 01 RW 03</p>
+                </div>
+                <button onclick="muatSemuaData()" class="btn-secondary" style="font-size: 0.75rem;">
+                    <i class="fa-solid fa-arrows-rotate"></i> Refresh Data
+                </button>
+            </div>
+
+            <div id="container-kegiatan" class="grid-3"></div>
+        </section>
+
+        <!-- KEUANGAN & KAS -->
+        <section id="keuangan" style="border-top: 1px solid var(--slate-200); padding-top: 2rem; display: flex; flex-direction: column; gap: 1.5rem;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
+                <div>
+                    <span class="badge badge-emerald" style="margin-bottom: 0.5rem;"><i class="fa-solid fa-scale-balanced"></i> TRANSPARANSI KAS</span>
+                    <h2 style="font-size: 1.75rem; font-weight: 800; color: var(--slate-900); margin: 0;">Laporan Keuangan Kas Warga</h2>
+                    <p style="font-size: 0.875rem; color: #64748b; margin-top: 0.25rem;">Catatan mutasi iuran bulanan, jimpitan, dana sosial, dan alokasi pengeluaran kas RT 01</p>
+                </div>
+                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                    <button onclick="bukaModalCatatKeuangan()" class="btn-primary"><i class="fa-solid fa-plus-circle"></i> Catat Kas</button>
+                    <button onclick="unduhCsvKeuangan()" class="btn-secondary"><i class="fa-solid fa-download"></i> Unduh CSV</button>
+                    <button onclick="window.print()" class="btn-secondary"><i class="fa-solid fa-print"></i> Cetak</button>
+                </div>
+            </div>
+
+            <!-- REKAP KAS -->
+            <div class="grid-3">
+                <div class="card-emerald" style="display: flex; flex-direction: column; justify-content: space-between;">
+                    <div>
+                        <div style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #a7f3d0;">Total Saldo Kas RT</div>
+                        <div id="cardSaldoKas" style="font-size: 2.25rem; font-weight: 900; margin-top: 0.25rem;">Rp 0</div>
+                    </div>
+                    <div style="font-size: 0.75rem; border-top: 1px solid var(--emerald-700); padding-top: 0.75rem; margin-top: 1rem; display: flex; justify-content: space-between;">
+                        <span><i class="fa-solid fa-shield-halved"></i> Kas Terverifikasi</span>
+                        <span id="labelJumlahTrx" style="font-weight: 700;">0 Transaksi</span>
+                    </div>
+                </div>
+
+                <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
+                    <div>
+                        <div style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--emerald-700);">Total Pemasukan</div>
+                        <div id="cardTotalPemasukan" style="font-size: 1.75rem; font-weight: 900; color: var(--emerald-800); margin-top: 0.25rem;">Rp 0</div>
+                    </div>
+                    <div style="font-size: 0.75rem; color: #64748b; border-top: 1px solid var(--slate-100); padding-top: 0.75rem; margin-top: 1rem;">
+                        Sumber: Supabase DB Realtime
+                    </div>
+                </div>
+
+                <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
+                    <div>
+                        <div style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #e11d48;">Total Pengeluaran</div>
+                        <div id="cardTotalPengeluaran" style="font-size: 1.75rem; font-weight: 900; color: #be123c; margin-top: 0.25rem;">Rp 0</div>
+                    </div>
+                    <div style="font-size: 0.75rem; color: #64748b; border-top: 1px solid var(--slate-100); padding-top: 0.75rem; margin-top: 1rem;">
+                        Pertanggungjawaban Terbuka
+                    </div>
+                </div>
+            </div>
+
+            <!-- FILTER & SEARCH KEUANGAN -->
+            <div class="card" style="display: flex; gap: 1rem; flex-wrap: wrap; justify-content: space-between; align-items: center;">
+                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
+                    <button id="tabTipeSemua" onclick="setTipeFilterKeuangan('semua')" class="btn-secondary" style="font-size: 0.75rem; padding: 0.4rem 0.8rem;">Semua</button>
+                    <button id="tabTipePemasukan" onclick="setTipeFilterKeuangan('pemasukan')" class="btn-secondary" style="font-size: 0.75rem; padding: 0.4rem 0.8rem; color: var(--emerald-700);">Pemasukan</button>
+                    <button id="tabTipePengeluaran" onclick="setTipeFilterKeuangan('pengeluaran')" class="btn-secondary" style="font-size: 0.75rem; padding: 0.4rem 0.8rem; color: #e11d48;">Pengeluaran</button>
+                </div>
+                <div style="max-width: 300px; width: 100%;">
+                    <input type="text" id="searchKeuangan" onkeyup="filterKeuangan()" placeholder="Cari uraian, petugas, kategori...">
+                </div>
+            </div>
+
+            <!-- TABEL KEUANGAN -->
+            <div class="card" style="padding: 0; overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>Tanggal</th>
+                            <th>Kategori</th>
+                            <th>Uraian / Keterangan</th>
+                            <th>Petugas / PJ</th>
+                            <th style="text-align: right;">Nominal (Rp)</th>
+                            <th style="text-align: right;">Saldo Kas (Rp)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody-keuangan">
+                        <tr>
+                            <td colspan="7" style="text-align: center; padding: 2rem; color: #94a3b8;">Memuat data transaksi dari Supabase...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- DATA WARGA -->
+        <section id="data-warga" style="border-top: 1px solid var(--slate-200); padding-top: 2rem; display: flex; flex-direction: column; gap: 1rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                <div>
+                    <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--slate-900); margin: 0;">Data Kependudukan RT 01</h2>
+                    <p style="font-size: 0.875rem; color: #64748b; margin: 0;">Data warga resmi tersimpan aman di database Supabase</p>
+                </div>
+                <div style="max-width: 280px; width: 100%;">
+                    <input type="text" id="searchWarga" onkeyup="filterWarga()" placeholder="Cari NIK, KK, Nama Warga...">
+                </div>
+            </div>
+
+            <div class="card" style="padding: 0; overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>NIK</th>
+                            <th>No. KK</th>
+                            <th>Nama Lengkap</th>
+                            <th>Status</th>
+                            <th>Pekerjaan</th>
+                            <th style="text-align: center;">Lokasi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody-warga"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- PETA WILAYAH -->
+        <section id="lokasi" style="border-top: 1px solid var(--slate-200); padding-top: 2rem; display: flex; flex-direction: column; gap: 1rem;">
+            <div>
+                <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--slate-900); margin: 0;">Peta Wilayah RT 01 RW 03</h2>
+                <p style="font-size: 0.875rem; color: #64748b; margin: 0;">Lokasi RT 01 Desa Pecangaan Kulon, Kec. Pecangaan, Kab. Jepara</p>
+            </div>
+            <div class="card" style="padding: 0; overflow: hidden; height: 350px;">
+                <iframe style="width: 100%; height: 100%; border: 0;" src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15849.255944111325!2d110.7020815!3d-6.6946399!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e711ec4b96dfc33%3A0x5027a76e356e9c0!2sPecangaan%20Kulon%2C%20Kec.%20Pecangaan%2C%20Kabupaten%20Jepara%2C%20Jawa%20Tengah!5e0!3m2!1sid!2sid!4v1700000000000!5m2!1sid!2sid" allowfullscreen="" loading="lazy"></iframe>
+            </div>
+        </section>
+
+        <!-- PENGURUS RT -->
+        <section id="pengurus" style="border-top: 1px solid var(--slate-200); padding-top: 2rem; display: flex; flex-direction: column; gap: 1rem;">
+            <div style="text-align: center;">
+                <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--slate-900); margin: 0;">Struktur Pengurus RT 01 RW 03</h2>
+                <p style="font-size: 0.875rem; color: #64748b; margin-top: 0.25rem;">Pengabdi pelayanan warga RT 01 RW 03 Pecangaan Kulon</p>
+            </div>
+            <div id="container-pengurus" class="grid-4"></div>
+        </section>
+
+        <!-- FORM LAYANAN ASPIRASI -->
+        <section id="layanan" style="border-top: 1px solid var(--slate-200); padding-top: 2rem; display: flex; flex-direction: column; gap: 1rem;">
+            <div style="text-align: center;">
+                <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--slate-900); margin: 0;">Layanan Aspirasi & Surat RT</h2>
+                <p style="font-size: 0.875rem; color: #64748b; margin-top: 0.25rem;">Pengaduan dan pengajuan surat pengantar langsung masuk ke database RT</p>
+            </div>
+
+            <div id="pesanSuksesAspirasi" class="card" style="display: none; text-align: center; border: 2px solid #10b981; max-width: 600px; margin: 0 auto; padding: 2rem;">
+                <div style="width: 50px; height: 50px; background-color: #d1fae5; color: var(--emerald-700); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem auto; font-size: 1.5rem;">
+                    <i class="fa-solid fa-check"></i>
+                </div>
+                <h3 style="font-weight: 800; font-size: 1.25rem; margin: 0;">Aspirasi Berhasil Terkirim!</h3>
+                <p style="color: #64748b; font-size: 0.875rem; margin-top: 0.5rem;">Pesan Anda telah tersimpan dengan aman di database Supabase RT 01 RW 03.</p>
+                <div style="display: flex; gap: 0.5rem; justify-content: center; margin-top: 1.5rem;">
+                    <button onclick="resetFormAspirasi()" class="btn-primary">Kirim Pesan Lain</button>
+                </div>
+            </div>
+
+            <form id="formAspirasi" onsubmit="return submitFormAspirasi(event, this);" class="card" style="max-width: 650px; margin: 0 auto; width: 100%; display: flex; flex-direction: column; gap: 1rem;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+                    <div>
+                        <label style="font-size: 0.75rem; font-weight: 700; color: var(--slate-700);">Nama Lengkap *</label>
+                        <input type="text" name="nama" required placeholder="Contoh: Budi Santoso">
+                    </div>
+                    <div>
+                        <label style="font-size: 0.75rem; font-weight: 700; color: var(--slate-700);">Nomor WhatsApp *</label>
+                        <input type="tel" name="whatsapp" required placeholder="08...">
+                    </div>
+                </div>
+                <div>
+                    <label style="font-size: 0.75rem; font-weight: 700; color: var(--slate-700);">Kategori Layanan *</label>
+                    <select name="kategori">
+                        <option value="Surat Pengantar RT">Surat Pengantar RT (KTP/KK/SKCK/Domisili)</option>
+                        <option value="Kebersihan/Fasilitas">Kebersihan, Selokan & Fasilitas Lingkungan</option>
+                        <option value="Usulan Kegiatan">Usulan Kegiatan Warga</option>
+                        <option value="Keamanan & Ketertiban">Keamanan & Pos Ronda</option>
+                        <option value="Lainnya">Lainnya / Pertanyaan Umum</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size: 0.75rem; font-weight: 700; color: var(--slate-700);">Pesan / Detail Kebutuhan *</label>
+                    <textarea name="pesan" rows="4" required placeholder="Tuliskan detail permohonan Anda..."></textarea>
+                </div>
+                <button type="submit" id="btnSubmitAspirasi" class="btn-primary" style="justify-content: center; padding: 0.8rem;">
+                    <i class="fa-solid fa-paper-plane"></i> Kirim Aspirasi ke Supabase
+                </button>
+            </form>
+        </section>
+    </main>
+
+    <!-- MODAL CATAT KEUANGAN -->
+    <div id="modalCatatKeuangan" class="modal-backdrop">
+        <div class="modal-box" style="padding: 1.5rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--slate-200); padding-bottom: 1rem; margin-bottom: 1rem;">
+                <h3 style="margin: 0; font-weight: 800; color: var(--emerald-800);"><i class="fa-solid fa-wallet"></i> Catat Transaksi Kas RT</h3>
+                <button onclick="tutupModalCatatKeuangan()" style="background: none; border: none; font-size: 1.25rem; cursor: pointer; color: #94a3b8;"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="formCatatKeuangan" onsubmit="return submitTransaksiKeuangan(event, this);" style="display: flex; flex-direction: column; gap: 1rem;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div>
+                        <label style="font-size: 0.75rem; font-weight: 700;">Tanggal</label>
+                        <input type="date" name="tanggal" id="inputTrxTanggal" required>
+                    </div>
+                    <div>
+                        <label style="font-size: 0.75rem; font-weight: 700;">Tipe</label>
+                        <select name="tipe" id="inputTrxTipe" required>
+                            <option value="pemasukan">Pemasukan (+)</option>
+                            <option value="pengeluaran">Pengeluaran (-)</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label style="font-size: 0.75rem; font-weight: 700;">Kategori</label>
+                    <select name="kategori" id="inputTrxKategori" required>
+                        <option value="Iuran Rutin">Iuran Rutin</option>
+                        <option value="Iuran Sosial">Iuran Sosial</option>
+                        <option value="Iuran Jimpitan">Iuran Jimpitan</option>
+                        <option value="Kegiatan Warga & Lomba">Kegiatan Warga & Lomba</option>
+                        <option value="Kebersihan & Kerja Bakti">Kebersihan & Kerja Bakti</option>
+                        <option value="Keamanan & Pos Kamling">Keamanan & Pos Kamling</option>
+                        <option value="Operasional & Perlengkapan">Operasional & Perlengkapan</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size: 0.75rem; font-weight: 700;">Uraian / Keterangan</label>
+                    <textarea name="keterangan" id="inputTrxKeterangan" rows="2" required placeholder="Detail transaksi..."></textarea>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div>
+                        <label style="font-size: 0.75rem; font-weight: 700;">Nominal (Rp)</label>
+                        <input type="number" name="jumlah" id="inputTrxJumlah" min="1" required placeholder="100000">
+                    </div>
+                    <div>
+                        <label style="font-size: 0.75rem; font-weight: 700;">Petugas / PJ</label>
+                        <input type="text" name="penanggungJawab" id="inputTrxPetugas" required placeholder="Bendahara RT">
+                    </div>
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.5rem;">
+                    <button type="button" onclick="tutupModalCatatKeuangan()" class="btn-secondary">Batal</button>
+                    <button type="submit" id="btnSubmitTrx" class="btn-primary"><i class="fa-solid fa-save"></i> Simpan ke Supabase</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL DETAIL BERITA -->
+    <div id="modalDetailBerita" class="modal-backdrop" onclick="if(event.target===this) tutupModalBerita()">
+        <div class="modal-box" style="padding: 1.5rem;" onclick="event.stopPropagation()">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--slate-200); padding-bottom: 0.75rem; margin-bottom: 1rem;">
+                <span id="modalKategoriBadge" class="badge badge-emerald">Kegiatan</span>
+                <button type="button" onclick="tutupModalBerita()" style="background: none; border: none; font-size: 1.25rem; cursor: pointer; color: #94a3b8;"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                <div id="modalFotoContainer" style="width: 100%; max-height: 300px; overflow: hidden; border-radius: 0.75rem; background-color: var(--slate-100); display: flex; align-items: center; justify-content: center;">
+                    <img id="modalFoto" src="" alt="Foto Berita" style="width: 100%; height: auto; object-fit: cover;">
+                </div>
+                <h2 id="modalJudul" style="font-size: 1.25rem; font-weight: 800; color: var(--slate-900); margin: 0;"></h2>
+                <div style="font-size: 0.75rem; color: #64748b; background-color: var(--slate-50); padding: 0.75rem; border-radius: 0.5rem; display: flex; gap: 1rem;">
+                    <span><i class="fa-regular fa-calendar"></i> <span id="modalWaktu"></span></span>
+                    <span><i class="fa-solid fa-location-dot"></i> <span id="modalLokasi"></span></span>
+                </div>
+                <div id="modalDeskripsi" style="font-size: 0.875rem; color: var(--slate-700); border-top: 1px solid var(--slate-100); padding-top: 1rem; white-space: pre-line;"></div>
+            </div>
+            <div style="margin-top: 1.5rem; border-top: 1px solid var(--slate-100); padding-top: 0.75rem; display: flex; justify-content: flex-end;">
+                <button type="button" onclick="tutupModalBerita()" class="btn-primary">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL CONFIG SUPABASE -->
+    <div id="modalConfigSupabase" class="modal-backdrop">
+        <div class="modal-box" style="padding: 1.5rem; max-width: 450px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--slate-200); padding-bottom: 0.75rem; margin-bottom: 1rem;">
+                <h3 style="margin: 0; font-weight: 800;"><i class="fa-solid fa-database" style="color: var(--emerald-600);"></i> Supabase API Config</h3>
+                <button onclick="tutupModalConfigSupabase()" style="background: none; border: none; font-size: 1.25rem; cursor: pointer; color: #94a3b8;"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                <div>
+                    <label style="font-size: 0.75rem; font-weight: 700;">Supabase URL</label>
+                    <input type="url" id="cfgSupabaseUrl" placeholder="https://xyz.supabase.co">
+                </div>
+                <div>
+                    <label style="font-size: 0.75rem; font-weight: 700;">Supabase Anon Key</label>
+                    <input type="text" id="cfgSupabaseAnonKey" placeholder="eyJhbGciOi...">
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.5rem;">
+                    <button onclick="tutupModalConfigSupabase()" class="btn-secondary">Batal</button>
+                    <button onclick="simpanConfigSupabase()" class="btn-primary">Simpan & Hubungkan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer style="background-color: #ffffff; border-top: 1px solid var(--slate-200); padding: 1.5rem; text-align: center; font-size: 0.75rem; color: #64748b;">
+        © 2026 RT 01 RW 03 Pecangaan Kulon. Sistem Informasi Supabase Cloud Realtime.
+    </footer>
+
+    <!-- LOGIKA JAVASCRIPT UTAMA -->
+    <script>
+        const DEFAULT_SUPABASE_URL = "https://blsykwxrbczjdfvypeq.supabase.co";
+        const DEFAULT_SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJsc3lrd3hyYmN6amRmdnlwcGVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzOTg4MjAsImV4cCI6MjEwNjk3NDgyMH0.GRfiZ2S73GXZmPGoylsLj_hcAXcOjAOjADgzpjSLkwI";
+
+        let supabaseClient = null;
+        let listKegiatanGlobal = [];
+        let listWargaGlobal = [];
+        let listPengurusGlobal = [];
+        let listKeuanganGlobal = [];
+        let filterTipeKeuangan = 'semua';
+
+        const fallbackKegiatan = [{
+            id: 'demo-1',
+            judul: 'RT 01 RW 03 Ikuti Lomba Nyanyi Bersambung yang Digelar Desa Pecangaan',
+            kategori: 'Lomba Desa',
+            deskripsi: 'Pecangaan, 3 Agustus 2026 – Dalam rangka memeriahkan kegiatan dan mempererat kebersamaan antarwarga, RT 01 RW 03 turut berpartisipasi dalam Lomba Nyanyi Bersambung yang diselenggarakan oleh Pemerintah Desa Pecangaan.',
+            waktu: 'Agustus 2026',
+            lokasi: 'Pecangaan Kulon',
+            foto: 'https://lh3.googleusercontent.com/d/1MFlLs6z3UjAHuKddYlFkj9lm0sqCs4g1'
+        }];
+
+        const fallbackPengurus = [
+            { jabatan: 'Ketua RT 01', nama: 'H. Ahmad Supriyadi', kontak: '081234567890', icon: 'fa-user-tie' },
+            { jabatan: 'Sekretaris', nama: 'Budi Santoso, S.Pd', kontak: '082134567891', icon: 'fa-pen-to-square' },
+            { jabatan: 'Bendahara RT', nama: 'Hj. Siti Aminah', kontak: '083834567892', icon: 'fa-wallet' },
+            { jabatan: 'Seksi Keamanan', nama: 'Slamet Riyadi', kontak: '085234567893', icon: 'fa-shield-halved' }
+        ];
+
+        const fallbackKeuangan = [
+            { id: 'trx-1', tanggal: '2026-10-01', tipe: 'pemasukan', kategori: 'Iuran Rutin', keterangan: 'Iuran Kas Rutin Warga Bulan Oktober 2026', jumlah: 1500000, penanggung_jawab: 'Bendahara RT' },
+            { id: 'trx-2', tanggal: '2026-10-03', tipe: 'pengeluaran', kategori: 'Keamanan & Pos Kamling', keterangan: 'Pembelian Lampu & Perbaikan Pos Ronda RT 01', jumlah: 250000, penanggung_jawab: 'Seksi Keamanan' }
+        ];
+
+        window.onload = function() {
+            muatConfigSupabase();
+            muatSemuaData();
+        };
+
+        function muatConfigSupabase() {
+            const storedUrl = localStorage.getItem('supabase_url') || DEFAULT_SUPABASE_URL;
+            const storedKey = localStorage.getItem('supabase_key') || DEFAULT_SUPABASE_KEY;
+            
+            if (storedUrl && storedKey && window.supabase) {
+                try {
+                    supabaseClient = window.supabase.createClient(storedUrl, storedKey);
+                    const statusEl = document.getElementById('statusSupabase');
+                    if (statusEl) {
+                        statusEl.className = 'badge badge-emerald';
+                        statusEl.innerHTML = '<i class="fa-solid fa-circle-check"></i> CONNECTED';
+                    }
+                } catch(e) {
+                    console.error("Supabase init error:", e);
+                }
+            }
+        }
+
+        function bukaModalConfigSupabase() {
+            document.getElementById('cfgSupabaseUrl').value = localStorage.getItem('supabase_url') || DEFAULT_SUPABASE_URL;
+            document.getElementById('cfgSupabaseAnonKey').value = localStorage.getItem('supabase_key') || DEFAULT_SUPABASE_KEY;
+            document.getElementById('modalConfigSupabase').classList.add('buka');
+        }
+
+        function tutupModalConfigSupabase() {
+            document.getElementById('modalConfigSupabase').classList.remove('buka');
+        }
+
+        function simpanConfigSupabase() {
+            const url = document.getElementById('cfgSupabaseUrl').value.trim();
+            const key = document.getElementById('cfgSupabaseAnonKey').value.trim();
+            if (!url || !key) return alert('Lengkapi URL dan Key!');
+            localStorage.setItem('supabase_url', url);
+            localStorage.setItem('supabase_key', key);
+            tutupModalConfigSupabase();
+            muatConfigSupabase();
+            muatSemuaData();
+        }
+
+        async function muatSemuaData() {
+            if (supabaseClient) {
+                try {
+                    const { data: dataKegiatan } = await supabaseClient.from('kegiatan').select('*').order('created_at', { ascending: false });
+                    renderKegiatan(dataKegiatan && dataKegiatan.length > 0 ? dataKegiatan : fallbackKegiatan);
+
+                    const { data: dataWarga } = await supabaseClient.from('warga').select('*').order('nama', { ascending: true });
+                    renderWarga(dataWarga || []);
+
+                    const { data: dataPengurus } = await supabaseClient.from('pengurus').select('*').order('urutan', { ascending: true });
+                    renderPengurus((dataPengurus && dataPengurus.length > 0) ? dataPengurus : fallbackPengurus);
+
+                    const { data: dataKeuangan } = await supabaseClient.from('keuangan').select('*').order('tanggal', { ascending: false });
+                    renderKeuangan((dataKeuangan && dataKeuangan.length > 0) ? dataKeuangan : fallbackKeuangan);
+                    return;
+                } catch (err) {
+                    console.warn('Gagal ambil data Supabase, pakai fallback:', err);
+                }
+            }
+            renderFallbackSemua();
+        }
+
+        function renderFallbackSemua() {
+            renderKegiatan(fallbackKegiatan);
+            renderWarga([]);
+            renderPengurus(fallbackPengurus);
+            renderKeuangan(fallbackKeuangan);
+        }
+
+        function safeText(str) {
+            if (!str) return '';
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        function formatRupiah(angka) {
+            const n = parseInt(angka, 10) || 0;
+            return 'Rp ' + n.toLocaleString('id-ID');
+        }
+
+        function renderKegiatan(data) {
+            listKegiatanGlobal = data || [];
+            const container = document.getElementById('container-kegiatan');
+            document.getElementById('statTotalKegiatan').textContent = listKegiatanGlobal.length;
+
+            if (!listKegiatanGlobal.length) {
+                container.innerHTML = '<div style="color: #94a3b8; font-size: 0.875rem;">Belum ada berita kegiatan.</div>';
+                return;
+            }
+
+            container.innerHTML = listKegiatanGlobal.map((item, idx) => {
+                const fotoHtml = item.foto 
+                    ? `<img src="${item.foto}" style="width: 100%; height: 180px; object-fit: cover; border-radius: 0.75rem 0.75rem 0 0;">`
+                    : `<div style="height: 120px; background: linear-gradient(135deg, var(--emerald-800), var(--emerald-900)); color: white; padding: 1rem; border-radius: 0.75rem 0.75rem 0 0; display: flex; align-items: flex-end; font-weight: 700;">${safeText(item.kategori || 'Kegiatan')}</div>`;
+
+                return `<div class="card" style="padding: 0; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between;">
+                    ${fotoHtml}
+                    <div style="padding: 1.25rem; display: flex; flex-direction: column; gap: 0.75rem;">
+                        <span class="badge badge-emerald" style="width: max-content;">${safeText(item.kategori || 'Kegiatan')}</span>
+                        <h3 style="font-size: 1rem; font-weight: 800; color: var(--slate-900); margin: 0; line-height: 1.3; cursor: pointer;" onclick="bukaModalBerita(${idx})">${safeText(item.judul)}</h3>
+                        <p style="font-size: 0.8rem; color: #64748b; margin: 0; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">${safeText(item.deskripsi)}</p>
+                        <button onclick="bukaModalBerita(${idx})" class="btn-secondary" style="font-size: 0.75rem; margin-top: 0.5rem; justify-content: center;">
+                            Baca Lengkap <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function bukaModalBerita(idx) {
+            const item = listKegiatanGlobal[idx];
+            if (!item) return;
+
+            document.getElementById('modalJudul').textContent = item.judul || '';
+            document.getElementById('modalKategoriBadge').textContent = item.kategori || 'Kegiatan';
+            document.getElementById('modalWaktu').textContent = item.waktu || '-';
+            document.getElementById('modalLokasi').textContent = item.lokasi || 'Pecangaan Kulon';
+
+            const fotoContainer = document.getElementById('modalFotoContainer');
+            const modalFoto = document.getElementById('modalFoto');
+            if (item.foto) {
+                modalFoto.src = item.foto;
+                fotoContainer.style.display = 'flex';
+            } else {
+                fotoContainer.style.display = 'none';
+            }
+
+            document.getElementById('modalDeskripsi').textContent = item.deskripsi || '';
+            document.getElementById('modalDetailBerita').classList.add('buka');
+        }
+
+        function tutupModalBerita() {
+            document.getElementById('modalDetailBerita').classList.remove('buka');
+        }
+
+        function renderKeuangan(data) {
+            listKeuanganGlobal = data || [];
+            let totalMasuk = 0, totalKeluar = 0;
+
+            listKeuanganGlobal.forEach(t => {
+                const jml = parseInt(t.jumlah, 10) || 0;
+                if (t.tipe === 'pemasukan') totalMasuk += jml;
+                else totalKeluar += jml;
+            });
+
+            const saldo = totalMasuk - totalKeluar;
+            document.getElementById('cardSaldoKas').textContent = formatRupiah(saldo);
+            document.getElementById('statTotalSaldoKas').textContent = formatRupiah(saldo);
+            document.getElementById('labelJumlahTrx').textContent = listKeuanganGlobal.length + ' Transaksi';
+            document.getElementById('cardTotalPemasukan').textContent = formatRupiah(totalMasuk);
+            document.getElementById('cardTotalPengeluaran').textContent = formatRupiah(totalKeluar);
+
+            filterKeuangan();
+        }
+
+        function displayTabelKeuangan(items) {
+            const tbody = document.getElementById('tbody-keuangan');
+            if (!items.length) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 1.5rem; color: #94a3b8;">Tidak ada data transaksi.</td></tr>';
+                return;
+            }
+
+            let saldos = {}, berjalan = 0;
+            listKeuanganGlobal.slice().reverse().forEach((t, idx) => {
+                const jml = parseInt(t.jumlah, 10) || 0;
+                if (t.tipe === 'pemasukan') berjalan += jml;
+                else berjalan -= jml;
+                saldos[t.id || idx] = berjalan;
+            });
+
+            tbody.innerHTML = items.map((t, idx) => {
+                const isMasuk = (t.tipe === 'pemasukan');
+                const jml = parseInt(t.jumlah, 10) || 0;
+                const nominalBadge = isMasuk 
+                    ? `<span class="badge badge-emerald">+ ${formatRupiah(jml)}</span>`
+                    : `<span class="badge badge-rose">- ${formatRupiah(jml)}</span>`;
+
+                return `<tr>
+                    <td>${idx + 1}</td>
+                    <td style="font-family: monospace; font-size: 0.75rem;">${safeText(t.tanggal)}</td>
+                    <td><span class="badge ${isMasuk ? 'badge-emerald' : 'badge-rose'}">${safeText(t.kategori)}</span></td>
+                    <td style="font-weight: 600;">${safeText(t.keterangan)}</td>
+                    <td style="font-size: 0.75rem; color: #64748b;">${safeText(t.penanggung_jawab || t.penanggungJawab || 'Bendahara RT')}</td>
+                    <td style="text-align: right;">${nominalBadge}</td>
+                    <td style="text-align: right; font-family: monospace; font-weight: 700;">${formatRupiah(saldos[t.id || idx] || 0)}</td>
+                </tr>`;
+            }).join('');
+        }
+
+        function filterKeuangan() {
+            const kw = (document.getElementById('searchKeuangan').value || '').toLowerCase();
+            const filtered = listKeuanganGlobal.filter(t => {
+                const matchKw = !kw || 
+                    (t.keterangan && t.keterangan.toLowerCase().includes(kw)) ||
+                    (t.kategori && t.kategori.toLowerCase().includes(kw));
+                const matchTipe = (filterTipeKeuangan === 'semua') || (t.tipe === filterTipeKeuangan);
+                return matchKw && matchTipe;
+            });
+            displayTabelKeuangan(filtered);
+        }
+
+        function setTipeFilterKeuangan(tipe) {
+            filterTipeKeuangan = tipe;
+            filterKeuangan();
+        }
+
+        function bukaModalCatatKeuangan() {
+            document.getElementById('modalCatatKeuangan').classList.add('buka');
+            const inpTgl = document.getElementById('inputTrxTanggal');
+            if (!inpTgl.value) inpTgl.value = new Date().toISOString().split('T')[0];
+        }
+
+        function tutupModalCatatKeuangan() {
+            document.getElementById('modalCatatKeuangan').classList.remove('buka');
+            document.getElementById('formCatatKeuangan').reset();
+        }
+
+        async function submitTransaksiKeuangan(e, form) {
+            if (e) e.preventDefault();
+            const btn = document.getElementById('btnSubmitTrx');
+            btn.disabled = true;
+
+            const payload = {
+                tanggal: form.tanggal.value,
+                tipe: form.tipe.value,
+                kategori: form.kategori.value,
+                keterangan: form.keterangan.value,
+                jumlah: parseInt(form.jumlah.value, 10),
+                penanggung_jawab: form.penanggungJawab.value
+            };
+
+            if (supabaseClient) {
+                const { error } = await supabaseClient.from('keuangan').insert([payload]);
+                if (error) alert('Gagal simpan: ' + error.message);
+                else { alert('Transaksi berhasil disimpan!'); muatSemuaData(); }
+            } else {
+                listKeuanganGlobal.unshift({ id: 'demo-' + Date.now(), ...payload });
+                renderKeuangan(listKeuanganGlobal);
+                alert('Tersimpan di mode demo.');
+            }
+
+            btn.disabled = false;
+            tutupModalCatatKeuangan();
+            return false;
+        }
+
+        function unduhCsvKeuangan() {
+            if (!listKeuanganGlobal.length) return alert('Data kosong');
+            let rows = ['No,Tanggal,Tipe,Kategori,Uraian,Nominal,Petugas'];
+            listKeuanganGlobal.forEach((t, i) => {
+                rows.push(`${i+1},"${t.tanggal}","${t.tipe}","${t.kategori}","${t.keterangan}",${t.jumlah},"${t.penanggung_jawab || t.penanggungJawab}"`);
+            });
+            const blob = new Blob([rows.join('\n')], { type: 'text/csv' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'Laporan_Keuangan_RT01_Supabase.csv';
+            link.click();
+        }
+
+        function renderWarga(data) {
+            listWargaGlobal = data || [];
+            document.getElementById('statTotalWarga').textContent = listWargaGlobal.length;
+            displayTabelWarga(listWargaGlobal);
+        }
+
+        function displayTabelWarga(data) {
+            const tbody = document.getElementById('tbody-warga');
+            if (!data.length) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 1.5rem; color: #94a3b8;">Belum ada data warga terdaftar.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = data.map((item, idx) => {
+                let mapBtn = '-';
+                if (item.maps && item.maps.startsWith('http')) {
+                    mapBtn = `<a href="${item.maps}" target="_blank" class="badge badge-emerald" style="text-decoration: none;"><i class="fa-solid fa-location-dot"></i> Maps</a>`;
+                }
+
+                return `<tr>
+                    <td>${idx + 1}</td>
+                    <td style="font-family: monospace;">${safeText(item.nik)}</td>
+                    <td style="font-family: monospace;">${safeText(item.no_kk)}</td>
+                    <td style="font-weight: 700; color: var(--slate-900);">${safeText(item.nama)}</td>
+                    <td><span class="badge badge-emerald">${safeText(item.status)}</span></td>
+                    <td>${safeText(item.pekerjaan)}</td>
+                    <td style="text-align: center;">${mapBtn}</td>
+                </tr>`;
+            }).join('');
+        }
+
+        function filterWarga() {
+            const kw = document.getElementById('searchWarga').value.toLowerCase();
+            const filtered = listWargaGlobal.filter(w => 
+                (w.nama && w.nama.toLowerCase().includes(kw)) || 
+                (w.nik && w.nik.toLowerCase().includes(kw)) ||
+                (w.no_kk && w.no_kk.toLowerCase().includes(kw))
+            );
+            displayTabelWarga(filtered);
+        }
+
+        function renderPengurus(data) {
+            listPengurusGlobal = data || [];
+            const container = document.getElementById('container-pengurus');
+
+            container.innerHTML = listPengurusGlobal.map(item => `
+                <div class="card" style="text-align: center; display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+                    <div style="width: 48px; height: 48px; border-radius: 50%; background-color: #d1fae5; color: var(--emerald-800); display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
+                        <i class="fa-solid ${safeText(item.icon || 'fa-user-tie')}"></i>
+                    </div>
+                    <div style="font-size: 0.7rem; font-weight: 800; color: var(--emerald-700); text-transform: uppercase;">${safeText(item.jabatan)}</div>
+                    <div style="font-size: 0.9rem; font-weight: 800; color: var(--slate-900);">${safeText(item.nama)}</div>
+                    ${item.kontak ? `<a href="https://wa.me/${item.kontak.replace(/[^0-9]/g,'')}" target="_blank" style="font-size: 0.75rem; color: var(--emerald-700); text-decoration: none; font-weight: 600;"><i class="fa-brands fa-whatsapp"></i> ${safeText(item.kontak)}</a>` : ''}
+                </div>
+            `).join('');
+        }
+
+        async function submitFormAspirasi(e, form) {
+            if (e) e.preventDefault();
+            const btn = document.getElementById('btnSubmitAspirasi');
+            btn.disabled = true;
+
+            const payload = {
+                nama: form.nama.value,
+                whatsapp: form.whatsapp.value,
+                kategori: form.kategori.value,
+                pesan: form.pesan.value
+            };
+
+            if (supabaseClient) {
+                const { error } = await supabaseClient.from('aspirasi').insert([payload]);
+                if (error) alert('Gagal mengirim: ' + error.message);
+                else tampilkanPesanSuksesAspirasi();
+            } else {
+                tampilkanPesanSuksesAspirasi();
+            }
+
+            btn.disabled = false;
+            return false;
+        }
+
+        function tampilkanPesanSuksesAspirasi() {
+            document.getElementById('formAspirasi').style.display = 'none';
+            document.getElementById('pesanSuksesAspirasi').style.display = 'block';
+        }
+
+        function resetFormAspirasi() {
+            document.getElementById('pesanSuksesAspirasi').style.display = 'none';
+            const f = document.getElementById('formAspirasi');
+            f.style.display = 'flex';
+            f.reset();
+        }
+    </script>
+</body>
+</html>
