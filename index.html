@@ -257,25 +257,27 @@
         © 2026 RT 01 RW 03 Pecangaan Kulon. Powered by Supabase Cloud Database Engine.
     </footer>
 
-    <!-- LOGIKA JAVASCRIPT DIRECT REST API FETCH -->
+    <!-- LOGIKA JAVASCRIPT -->
     <script>
         const DEFAULT_URL = "https://blsykwxrbczjdfvypeq.supabase.co";
         const DEFAULT_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJsc3lrd3hyYmN6amRmdnlwcGVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzOTg4MjAsImV4cCI6MjEwNjk3NDgyMH0.GRfiZ2S73GXZmPGoylsLj_hcAXcOjAOjADgzpjSLkwI";
 
-        let supabaseUrl = localStorage.getItem('rt01_sp_url') || DEFAULT_URL;
-        let supabaseKey = localStorage.getItem('rt01_sp_key') || DEFAULT_KEY;
+        let supabaseUrl = DEFAULT_URL;
+        let supabaseKey = DEFAULT_KEY;
         let clientSP = null;
 
         function initClient() {
             try {
+                const savedUrl = localStorage.getItem('rt01_sp_url');
+                const savedKey = localStorage.getItem('rt01_sp_key');
+                if (savedUrl) supabaseUrl = savedUrl;
+                if (savedKey) supabaseKey = savedKey;
+
                 if (window.supabase && typeof window.supabase.createClient === 'function') {
                     clientSP = window.supabase.createClient(supabaseUrl, supabaseKey);
-                    updateBadge(true);
-                    muatSemuaData();
-                } else {
-                    updateBadge(true);
-                    muatSemuaData();
                 }
+                updateBadge(true);
+                muatSemuaData();
             } catch(e) {
                 console.error("Gagal koneksi Supabase:", e);
                 updateBadge(false);
@@ -311,14 +313,15 @@
         async function getKegiatan() {
             try {
                 let data = [];
-                const res = await fetch(`${supabaseUrl}/rest/v1/kegiatan?select=*`, {
-                    headers: { 'apikey': supabaseKey, 'Authorization': `Bearer ${supabaseKey}` }
-                });
-                if (res.ok) {
-                    data = await res.json();
-                } else if (clientSP) {
-                    const spRes = await clientSP.from('kegiatan').select('*');
-                    data = spRes.data || [];
+                if (clientSP) {
+                    const res = await clientSP.from('kegiatan').select('*').order('created_at', { ascending: false });
+                    if (res.data && res.data.length > 0) data = res.data;
+                }
+                if (!data || data.length === 0) {
+                    const fetchRes = await fetch(`${supabaseUrl}/rest/v1/kegiatan?select=*&order=created_at.desc`, {
+                        headers: { 'apikey': supabaseKey, 'Authorization': `Bearer ${supabaseKey}` }
+                    });
+                    if (fetchRes.ok) data = await fetchRes.json();
                 }
 
                 const container = document.getElementById('container-kegiatan');
@@ -348,14 +351,15 @@
         async function getKeuangan() {
             try {
                 let data = [];
-                const res = await fetch(`${supabaseUrl}/rest/v1/keuangan?select=*`, {
-                    headers: { 'apikey': supabaseKey, 'Authorization': `Bearer ${supabaseKey}` }
-                });
-                if (res.ok) {
-                    data = await res.json();
-                } else if (clientSP) {
-                    const spRes = await clientSP.from('keuangan').select('*');
-                    data = spRes.data || [];
+                if (clientSP) {
+                    const res = await clientSP.from('keuangan').select('*').order('created_at', { ascending: false });
+                    if (res.data && res.data.length > 0) data = res.data;
+                }
+                if (!data || data.length === 0) {
+                    const fetchRes = await fetch(`${supabaseUrl}/rest/v1/keuangan?select=*&order=created_at.desc`, {
+                        headers: { 'apikey': supabaseKey, 'Authorization': `Bearer ${supabaseKey}` }
+                    });
+                    if (fetchRes.ok) data = await fetchRes.json();
                 }
 
                 const tbody = document.getElementById('tbody-keuangan');
@@ -394,14 +398,15 @@
         async function getWarga() {
             try {
                 let data = [];
-                const res = await fetch(`${supabaseUrl}/rest/v1/warga?select=*`, {
-                    headers: { 'apikey': supabaseKey, 'Authorization': `Bearer ${supabaseKey}` }
-                });
-                if (res.ok) {
-                    data = await res.json();
-                } else if (clientSP) {
-                    const spRes = await clientSP.from('warga').select('*');
-                    data = spRes.data || [];
+                if (clientSP) {
+                    const res = await clientSP.from('warga').select('*');
+                    if (res.data && res.data.length > 0) data = res.data;
+                }
+                if (!data || data.length === 0) {
+                    const fetchRes = await fetch(`${supabaseUrl}/rest/v1/warga?select=*`, {
+                        headers: { 'apikey': supabaseKey, 'Authorization': `Bearer ${supabaseKey}` }
+                    });
+                    if (fetchRes.ok) data = await fetchRes.json();
                 }
 
                 const tbody = document.getElementById('tbody-warga');
@@ -428,14 +433,15 @@
         async function getPengurus() {
             try {
                 let data = [];
-                const res = await fetch(`${supabaseUrl}/rest/v1/pengurus?select=*`, {
-                    headers: { 'apikey': supabaseKey, 'Authorization': `Bearer ${supabaseKey}` }
-                });
-                if (res.ok) {
-                    data = await res.json();
-                } else if (clientSP) {
-                    const spRes = await clientSP.from('pengurus').select('*');
-                    data = spRes.data || [];
+                if (clientSP) {
+                    const res = await clientSP.from('pengurus').select('*');
+                    if (res.data && res.data.length > 0) data = res.data;
+                }
+                if (!data || data.length === 0) {
+                    const fetchRes = await fetch(`${supabaseUrl}/rest/v1/pengurus?select=*`, {
+                        headers: { 'apikey': supabaseKey, 'Authorization': `Bearer ${supabaseKey}` }
+                    });
+                    if (fetchRes.ok) data = await fetchRes.json();
                 }
 
                 const container = document.getElementById('container-pengurus');
