@@ -257,7 +257,7 @@
         © 2026 RT 01 RW 03 Pecangaan Kulon. Powered by Supabase Cloud Database Engine.
     </footer>
 
-    <!-- LOGIKA JAVASCRIPT -->
+    <!-- LOGIKA JAVASCRIPT DIRECT REST API FETCH -->
     <script>
         const DEFAULT_URL = "https://blsykwxrbczjdfvypeq.supabase.co";
         const DEFAULT_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJsc3lrd3hyYmN6amRmdnlwcGVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzOTg4MjAsImV4cCI6MjEwNjk3NDgyMH0.GRfiZ2S73GXZmPGoylsLj_hcAXcOjAOjADgzpjSLkwI";
@@ -273,7 +273,8 @@
                     updateBadge(true);
                     muatSemuaData();
                 } else {
-                    setTimeout(initClient, 300);
+                    updateBadge(true);
+                    muatSemuaData();
                 }
             } catch(e) {
                 console.error("Gagal koneksi Supabase:", e);
@@ -299,7 +300,6 @@
         }
 
         async function muatSemuaData() {
-            if (!clientSP) return;
             await Promise.allSettled([
                 getKegiatan(),
                 getKeuangan(),
@@ -310,10 +310,19 @@
 
         async function getKegiatan() {
             try {
-                const res = await clientSP.from('kegiatan').select('*').order('created_at', { ascending: false });
-                const data = res.data || [];
+                let data = [];
+                const res = await fetch(`${supabaseUrl}/rest/v1/kegiatan?select=*`, {
+                    headers: { 'apikey': supabaseKey, 'Authorization': `Bearer ${supabaseKey}` }
+                });
+                if (res.ok) {
+                    data = await res.json();
+                } else if (clientSP) {
+                    const spRes = await clientSP.from('kegiatan').select('*');
+                    data = spRes.data || [];
+                }
+
                 const container = document.getElementById('container-kegiatan');
-                document.getElementById('statTotalKegiatan').textContent = data.length;
+                document.getElementById('statTotalKegiatan').textContent = data ? data.length : 0;
 
                 if (!data || data.length === 0) {
                     container.innerHTML = '<p class="col-span-3 text-center py-8 text-slate-500 text-xs">Belum ada agenda kegiatan di Supabase.</p>';
@@ -338,8 +347,17 @@
 
         async function getKeuangan() {
             try {
-                const res = await clientSP.from('keuangan').select('*').order('created_at', { ascending: false });
-                const data = res.data || [];
+                let data = [];
+                const res = await fetch(`${supabaseUrl}/rest/v1/keuangan?select=*`, {
+                    headers: { 'apikey': supabaseKey, 'Authorization': `Bearer ${supabaseKey}` }
+                });
+                if (res.ok) {
+                    data = await res.json();
+                } else if (clientSP) {
+                    const spRes = await clientSP.from('keuangan').select('*');
+                    data = spRes.data || [];
+                }
+
                 const tbody = document.getElementById('tbody-keuangan');
 
                 if (!data || data.length === 0) {
@@ -350,7 +368,7 @@
 
                 let totalMasuk = 0, totalKeluar = 0;
                 tbody.innerHTML = data.map((t, idx) => {
-                    const isMasuk = t.tipe === 'pemasukan';
+                    const isMasuk = String(t.tipe).toLowerCase() === 'pemasukan';
                     const jml = parseInt(t.jumlah || 0, 10);
                     if (isMasuk) totalMasuk += jml; else totalKeluar += jml;
 
@@ -375,10 +393,19 @@
 
         async function getWarga() {
             try {
-                const res = await clientSP.from('warga').select('*');
-                const data = res.data || [];
+                let data = [];
+                const res = await fetch(`${supabaseUrl}/rest/v1/warga?select=*`, {
+                    headers: { 'apikey': supabaseKey, 'Authorization': `Bearer ${supabaseKey}` }
+                });
+                if (res.ok) {
+                    data = await res.json();
+                } else if (clientSP) {
+                    const spRes = await clientSP.from('warga').select('*');
+                    data = spRes.data || [];
+                }
+
                 const tbody = document.getElementById('tbody-warga');
-                document.getElementById('statTotalWarga').textContent = data.length;
+                document.getElementById('statTotalWarga').textContent = data ? data.length : 0;
 
                 if (!data || data.length === 0) {
                     tbody.innerHTML = '<tr><td colspan="6" class="py-8 text-center text-slate-500 text-xs">Belum ada data warga terdaftar.</td></tr>';
@@ -400,8 +427,17 @@
 
         async function getPengurus() {
             try {
-                const res = await clientSP.from('pengurus').select('*');
-                const data = res.data || [];
+                let data = [];
+                const res = await fetch(`${supabaseUrl}/rest/v1/pengurus?select=*`, {
+                    headers: { 'apikey': supabaseKey, 'Authorization': `Bearer ${supabaseKey}` }
+                });
+                if (res.ok) {
+                    data = await res.json();
+                } else if (clientSP) {
+                    const spRes = await clientSP.from('pengurus').select('*');
+                    data = spRes.data || [];
+                }
+
                 const container = document.getElementById('container-pengurus');
 
                 if (!data || data.length === 0) {
